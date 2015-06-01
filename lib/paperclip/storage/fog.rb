@@ -129,10 +129,18 @@ module Paperclip
 
       def public_url(style = default_style)
         if @options[:fog_host]
-          "#{dynamic_fog_host_for_style(style)}/#{path(style)}"
+          if path(style).nil?
+            dynamic_fog_host_for_style(style).to_s
+          else
+            URI.join(dynamic_fog_host_for_style(style), path(style))
+          end
         else
           if fog_credentials[:provider] == 'AWS'
-            "#{scheme}://#{host_name_for_directory}/#{path(style)}"
+            if path(style).nil?
+              "#{scheme}://#{host_name_for_directory}"
+            else
+              URI.join("#{scheme}://#{host_name_for_directory}", path(style))
+            end
           else
             directory.files.new(:key => path(style)).public_url
           end
